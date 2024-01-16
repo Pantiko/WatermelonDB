@@ -4,9 +4,10 @@ import { values } from '../../utils/fp'
 import areRecordsEqual from '../../utils/fp/areRecordsEqual'
 import { invariant } from '../../utils/common'
 
-import type { Model, Collection, Database, TableName, SyncIds, RecordId } from '../..'
+import type { Model, Collection, Database, TableName, RecordId } from '../..'
 import { type RawRecord, type DirtyRaw, sanitizedRaw } from '../../RawRecord'
 import type {
+  SyncIds,
   SyncLog,
   SyncDatabaseChangeSet,
   SyncShouldUpdateRecord,
@@ -163,8 +164,10 @@ export const changeSetCount: (SyncDatabaseChangeSet) => number = (changeset) =>
   )
 
 const extractChangeSetIds: (SyncDatabaseChangeSet) => { [TableName<any>]: RecordId[] } = (changeset) =>
-  Object.keys(changeset).reduce((acc, key) => {
+  Object.keys(changeset).reduce((acc: { [TableName<any>]: RecordId[] }, key: string) => {
+    // $FlowFixMe
     const { created, updated, deleted } = changeset[key]
+    // $FlowFixMe
     acc[key] = [
       ...created.map(it => it.id),
       ...updated.map(it => it.id),
@@ -175,22 +178,28 @@ const extractChangeSetIds: (SyncDatabaseChangeSet) => { [TableName<any>]: Record
 
 // Returns all rejected ids and is used when accepted ids are used 
 export const findRejectedIds:
-  (SyncIds, SyncIds, SyncDatabaseChangeSet) => SyncIds =
+  (?SyncIds, ?SyncIds, SyncDatabaseChangeSet) => SyncIds =
     (experimentalRejectedIds, experimentalAcceptedIds, changeset) => {
       const localIds = extractChangeSetIds(changeset)
 
-      const acceptedIdsSets = Object.keys(changeset).reduce((acc, key) => {
-        acc[key] = new Set(experimentalAcceptedIds[key])
-        return acc
+      const acceptedIdsSets = Object.keys(changeset).reduce(
+        (acc: { [TableName<any>]: Set<RecordId> }, key: string) => {
+          // $FlowFixMe
+          acc[key] = new Set(experimentalAcceptedIds[key])
+          return acc
       }, {})
 
-      return Object.keys(changeset).reduce((acc, key) => {
+      return Object.keys(changeset).reduce((acc: { [TableName<any>]: RecordId[] }, key: string) => {
         const rejectedIds = [
+          // $FlowFixMe
           ...(experimentalRejectedIds ? experimentalRejectedIds[key] || [] : []),
+          // $FlowFixMe
           ...(localIds[key] || []),
+          // $FlowFixMe
         ].filter(it => !acceptedIdsSets[key].has(it))
         
         if (rejectedIds.length > 0) {
+          // $FlowFixMe
           acc[key] = rejectedIds
         }
         return acc
