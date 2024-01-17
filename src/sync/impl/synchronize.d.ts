@@ -11,6 +11,7 @@ export default function synchronize({
   shouldUpdateRecord,
   conflictResolver,
   pushShouldConfirmOnlyAccepted,
+  pushConflictResolver,
   _unsafeBatchPerCollection,
   unsafeTurbo,
 }: SyncArgs): Promise<void>
