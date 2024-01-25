@@ -64,6 +64,11 @@ export type LokiAdapterOptions = $Exact<{
     // Collections (by table name) that Loki should deserialize lazily. This is only profitable for
     // collections that are most likely not required for launch - making everything lazy makes it slower
     lazyCollections?: TableName<any>[]
+    // Called on each collection name or chunk string (after serialization), before saving into
+    // IDB. Depending on algorithm it may be prefered to save ArrayBuffer which IDB supports.
+    encrypt?: (s: string) => Promise<string | ArrayBuffer>
+    // Called on each collecion name or chunk after retrieval from IDB.
+    decrypt?: (s: string | ArrayBuffer) => Promise<string>
   }>
   // -- internal --
   _testLokiAdapter?: LokiMemoryAdapter
